@@ -2,40 +2,48 @@ const BoxDAO = require('../daos/box.dao');
 const ManagerException = require('../exceptions/manager.exception');
 
 class BoxManager {
-  static async list() {
-    const boxes = await BoxDAO.selectAll();
-
-    return boxes;
+  static async list(name, type, pageSize, page, sortBy, sortOrder) {
+    return await BoxDAO.selectAll(name, type, pageSize, page, sortBy, sortOrder);
   }
 
   static async get(id) {
-    const box = await BoxDAO.selectById(id);
-
-    return box;
+    return await BoxDAO.selectById(id);
   }
 
-  static async add(stuff) {
-    const box = await BoxDAO.create(stuff);
+  static async getCount(name, type) {
+    return await BoxDAO.selectCount(name, type);
+  }
 
-    return box;
+  static async add(name, type, stuff) {
+    if(name) {
+      const dupName = await BoxDAO.selectByName(name);
+      if(dupName)
+        throw new ManagerException(403, name + ' already exists');
+    }
+
+    return await BoxDAO.create(name, type, stuff);
+  }
+
+  static async update(id, name, type) {
+    if(name) {
+      const dupName = await BoxDAO.selectByName(name);
+      if(dupName && String(dupName._id) !== id)
+        throw new ManagerException(403, name + ' already exists');
+    }
+
+    return await BoxDAO.update(id, name, type, null);
   }
 
   static async remove(id) {
-    const box = await BoxDAO.delete(id);
-
-    return box;
+    return await BoxDAO.delete(id);
   }
 
   static async changeStuff(id, stuff) {
-    const box = await BoxDAO.updateStuff(id, stuff);
-
-    return box;
+    return await BoxDAO.update(id, null, null, stuff);
   }
 
   static async removeStuff(id, stuff) {
-    const box = await BoxDAO.deleteStuff(id, stuff);
-
-    return box;
+    return await BoxDAO.deleteStuff(id, stuff);
   }
 }
 

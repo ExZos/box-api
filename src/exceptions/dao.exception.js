@@ -4,8 +4,9 @@
 */
 
 class DAOException {
-  constructor(code) {
+  constructor(code, message) {
     this.code = code;
+    this.message = message;
   }
 }
 

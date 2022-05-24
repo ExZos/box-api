@@ -66,6 +66,11 @@ const serviceRoutes = [
     action: 'add'
   }, {
     method: 'put',
+    route: '/boxes/:id',
+    controller: BoxController,
+    action: 'update'
+  }, {
+    method: 'put',
     route: '/boxes/:id/stuff',
     controller: BoxController,
     action: 'changeStuff'

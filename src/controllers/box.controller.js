@@ -1,3 +1,6 @@
+const url = require('url');
+const querystring = require('querystring');
+
 const BoxManager = require('../managers/box.manager');
 const DAOException = require('../exceptions/dao.exception');
 const ManagerException = require('../exceptions/manager.exception');
@@ -6,12 +9,25 @@ const ManagerException = require('../exceptions/manager.exception');
 class BoxController {
   async list(req, res, next) {
     try {
-      const boxes = await BoxManager.list();
+      const qs = url.parse(req.url).query;
+      const queryParams = querystring.parse(qs);
 
-      res.status(200).send(boxes);
+      const name = queryParams.name;
+      const type = queryParams.type;
+
+      const boxes = await BoxManager.list(name, type,
+        parseInt(queryParams.pageSize), parseInt(queryParams.page),
+        queryParams.sortBy, parseInt(queryParams.sortOrder));
+
+      const count = await BoxManager.getCount(name, type);
+
+      res.status(200).send({
+        boxes: boxes,
+        count: count
+      });
     } catch(e) {
       if(e instanceof DAOException || e instanceof ManagerException)
-        res.status(e.code).send();
+        res.status(e.code).send(e.message);
 
       res.status(500).send();
     }
@@ -27,7 +43,7 @@ class BoxController {
       res.status(200).send(box);
     } catch(e) {
       if(e instanceof DAOException || e instanceof ManagerException)
-        res.status(e.code).send();
+        res.status(e.code).send(e.message);
 
       res.status(500).send();
     }
@@ -35,7 +51,7 @@ class BoxController {
 
   async add(req, res, next) {
     try {
-      const box = await BoxManager.add(req.body.stuff);
+      const box = await BoxManager.add(req.body.name, req.body.type, req.body.stuff);
 
       if(!box)
         res.status(500).send();
@@ -43,8 +59,25 @@ class BoxController {
       res.status(200).send(box);
     } catch(e) {
       if(e instanceof DAOException || e instanceof ManagerException)
-        res.status(e.code).send();
+        res.status(e.code).send(e.message);
 
+      res.status(500).send();
+    }
+  }
+
+  async update(req, res, next) {
+    try {
+      const box = await BoxManager.update(req.params.id, req.body.name, req.body.type);
+
+      if(!box)
+        res.status(404).send();
+
+      res.status(200).send(box);
+    } catch(e) {
+      if(e instanceof DAOException || e instanceof ManagerException)
+        res.status(e.code).send(e.message);
+
+      console.error(e);
       res.status(500).send();
     }
   }
@@ -59,7 +92,7 @@ class BoxController {
       res.status(200).send(box);
     } catch(e) {
       if(e instanceof DAOException || e instanceof ManagerException)
-        res.status(e.code).send();
+        res.status(e.code).send(e.message);
 
       res.status(500).send();
     }
@@ -75,7 +108,7 @@ class BoxController {
       res.status(200).send(box);
     } catch(e) {
       if(e instanceof DAOException || e instanceof ManagerException)
-        res.status(e.code).send();
+        res.status(e.code).send(e.message);
 
       res.status(500).send();
     }
@@ -91,9 +124,8 @@ class BoxController {
       res.status(200).send(box);
     } catch(e) {
       if(e instanceof DAOException || e instanceof ManagerException)
-        res.status(e.code).send();
+        res.status(e.code).send(e.message);
 
-        console.log(e);
       res.status(500).send();
     }
   }
